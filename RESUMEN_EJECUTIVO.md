@@ -1,11 +1,18 @@
 ---
-title: "Resumen Ejecutivo — Demand Forecasting"
-author: "Diana Treviño y Karla Soto"
-format:
+title: "Predicting Retail Demand with Machine Learning"
+subtitle: "Reporte Ejecutivo"
+author: "Diana Treviño / Karla Soto"
+jupyter: python3
+format: 
   html:
+    theme: pulse
+    page-layout: full
     toc: true
-    toc-depth: 2
-    number-sections: true
+    toc-title: Contents
+    toc-depth: 3
+    toc-expand: 2
+    toc-location: left
+    df-print: kable
 ---
 
 ## 1. Contexto

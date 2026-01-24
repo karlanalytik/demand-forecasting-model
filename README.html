@@ -6,9 +6,8 @@
 
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
 
-<meta name="author" content="Diana Treviño / Karla Soto">
 
-<title>Predicting Retail Demand with Machine Learning</title>
+<title>readme</title>
 <style>
 code{white-space: pre-wrap;}
 span.smallcaps{font-variant: small-caps;}
@@ -21,249 +20,96 @@ ul.task-list li input[type="checkbox"] {
   margin: 0 0.8em 0.2em -1em; /* quarto-specific, see https://github.com/quarto-dev/quarto-cli/issues/4556 */ 
   vertical-align: middle;
 }
-/* CSS for syntax highlighting */
-html { -webkit-text-size-adjust: 100%; }
-pre > code.sourceCode { white-space: pre; position: relative; }
-pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
-pre > code.sourceCode > span:empty { height: 1.2em; }
-.sourceCode { overflow: visible; }
-code.sourceCode > span { color: inherit; text-decoration: inherit; }
-div.sourceCode { margin: 1em 0; }
-pre.sourceCode { margin: 0; }
-@media screen {
-div.sourceCode { overflow: auto; }
-}
-@media print {
-pre > code.sourceCode { white-space: pre-wrap; }
-pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
-}
-pre.numberSource code
-  { counter-reset: source-line 0; }
-pre.numberSource code > span
-  { position: relative; left: -4em; counter-increment: source-line; }
-pre.numberSource code > span > a:first-child::before
-  { content: counter(source-line);
-    position: relative; left: -1em; text-align: right; vertical-align: baseline;
-    border: none; display: inline-block;
-    -webkit-touch-callout: none; -webkit-user-select: none;
-    -khtml-user-select: none; -moz-user-select: none;
-    -ms-user-select: none; user-select: none;
-    padding: 0 4px; width: 4em;
-  }
-pre.numberSource { margin-left: 3em;  padding-left: 4px; }
-div.sourceCode
-  {   }
-@media screen {
-pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
-}
 </style>
 
 
-<script src="https://cdn.jsdelivr.net/npm/jquery@3.5.1/dist/jquery.min.js" integrity="sha384-ZvpUoO/+PpLXR1lu4jmpXWu80pZlYUAfxl5NsBMWOEPSjUn/6Z/hRTt8+pR6L4N2" crossorigin="anonymous"></script><script src="ForecastPredictModel_files/libs/clipboard/clipboard.min.js"></script>
-<script src="ForecastPredictModel_files/libs/quarto-html/quarto.js" type="module"></script>
-<script src="ForecastPredictModel_files/libs/quarto-html/tabsets/tabsets.js" type="module"></script>
-<script src="ForecastPredictModel_files/libs/quarto-html/axe/axe-check.js" type="module"></script>
-<script src="ForecastPredictModel_files/libs/quarto-html/popper.min.js"></script>
-<script src="ForecastPredictModel_files/libs/quarto-html/tippy.umd.min.js"></script>
-<script src="ForecastPredictModel_files/libs/quarto-html/anchor.min.js"></script>
-<link href="ForecastPredictModel_files/libs/quarto-html/tippy.css" rel="stylesheet">
-<link href="ForecastPredictModel_files/libs/quarto-html/quarto-syntax-highlighting-ed96de9b727972fe78a7b5d16c58bf87.css" rel="stylesheet" id="quarto-text-highlighting-styles">
-<script src="ForecastPredictModel_files/libs/bootstrap/bootstrap.min.js"></script>
-<link href="ForecastPredictModel_files/libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
-<link href="ForecastPredictModel_files/libs/bootstrap/bootstrap-e96974ae8fcc651990f58ab74235c57b.min.css" rel="stylesheet" append-hash="true" id="quarto-bootstrap" data-mode="light">
-<script src="https://cdn.jsdelivr.net/npm/requirejs@2.3.6/require.min.js" integrity="sha384-c9c+LnTbwQ3aujuU7ULEPVvgLs+Fn6fJUvIGTsuu1ZcCf11fiEubah0ttpca4ntM sha384-6V1/AdqZRWk1KAlWbKBlGhN7VG4iE/yAZcO6NZPMF8od0vukrvr0tg4qY6NSrItx" crossorigin="anonymous"></script>
-
-<script type="application/javascript">define('jquery', [],function() {return window.jQuery;})</script>
+<script src="README_files/libs/clipboard/clipboard.min.js"></script>
+<script src="README_files/libs/quarto-html/quarto.js" type="module"></script>
+<script src="README_files/libs/quarto-html/tabsets/tabsets.js" type="module"></script>
+<script src="README_files/libs/quarto-html/axe/axe-check.js" type="module"></script>
+<script src="README_files/libs/quarto-html/popper.min.js"></script>
+<script src="README_files/libs/quarto-html/tippy.umd.min.js"></script>
+<script src="README_files/libs/quarto-html/anchor.min.js"></script>
+<link href="README_files/libs/quarto-html/tippy.css" rel="stylesheet">
+<link href="README_files/libs/quarto-html/quarto-syntax-highlighting-ed96de9b727972fe78a7b5d16c58bf87.css" rel="stylesheet" id="quarto-text-highlighting-styles">
+<script src="README_files/libs/bootstrap/bootstrap.min.js"></script>
+<link href="README_files/libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
+<link href="README_files/libs/bootstrap/bootstrap-756ac36e9b56ac242e07f29663160013.min.css" rel="stylesheet" append-hash="true" id="quarto-bootstrap" data-mode="light">
 
 
 </head>
 
-<body class="quarto-light">
+<body class="fullcontent quarto-light">
 
-<div id="quarto-content" class="page-columns page-rows-contents page-layout-full toc-left">
-<div id="quarto-sidebar-toc-left" class="sidebar toc-left">
-  <nav id="TOC" role="doc-toc" class="toc-active" data-toc-expanded="2">
-    <h2 id="toc-title">Contents</h2>
-   
-  <ul>
-  <li><a href="#executive-summary" id="toc-executive-summary" class="nav-link active" data-scroll-target="#executive-summary">1. Executive Summary</a>
-  <ul class="collapse">
-  <li><a href="#business-context-and-problem-statement" id="toc-business-context-and-problem-statement" class="nav-link" data-scroll-target="#business-context-and-problem-statement">2. Business Context and Problem Statement</a></li>
-  <li><a href="#data-overview" id="toc-data-overview" class="nav-link" data-scroll-target="#data-overview">3. Data Overview</a></li>
-  <li><a href="#modeling-approach" id="toc-modeling-approach" class="nav-link" data-scroll-target="#modeling-approach">4. Modeling Approach</a></li>
-  <li><a href="#model-performance-and-results" id="toc-model-performance-and-results" class="nav-link" data-scroll-target="#model-performance-and-results">5. Model Performance and Results</a></li>
-  <li><a href="#business-impact-interpretation" id="toc-business-impact-interpretation" class="nav-link" data-scroll-target="#business-impact-interpretation">6. Business Impact Interpretation</a></li>
-  <li><a href="#limitations-and-risks" id="toc-limitations-and-risks" class="nav-link" data-scroll-target="#limitations-and-risks">7. Limitations and Risks</a></li>
-  <li><a href="#recommendations-and-next-steps" id="toc-recommendations-and-next-steps" class="nav-link" data-scroll-target="#recommendations-and-next-steps">8. Recommendations and Next Steps</a></li>
-  <li><a href="#appendix" id="toc-appendix" class="nav-link" data-scroll-target="#appendix">9. Appendix</a></li>
-  </ul></li>
-  </ul>
-</nav>
-</div>
-<div id="quarto-margin-sidebar" class="sidebar margin-sidebar zindex-bottom">
-</div>
-<main class="content column-page-right" id="quarto-document-content">
+<div id="quarto-content" class="page-columns page-rows-contents page-layout-article">
 
-<header id="title-block-header" class="quarto-title-block default">
-<div class="quarto-title">
-<h1 class="title">Predicting Retail Demand with Machine Learning</h1>
-<p class="subtitle lead">Executive Report</p>
-</div>
+<main class="content" id="quarto-document-content">
 
 
 
-<div class="quarto-title-meta column-page-right">
 
-    <div>
-    <div class="quarto-title-meta-heading">Author</div>
-    <div class="quarto-title-meta-contents">
-             <p>Diana Treviño / Karla Soto </p>
-          </div>
-  </div>
-    
-  
-    
-  </div>
-  
-
-
-</header>
-
-
-<section id="executive-summary" class="level1">
-<h1>1. Executive Summary</h1>
-<p>This project develops an end-to-end Machine Learning solution to forecast retail sales at a granular product–store–month level. Using three years of transactional data from a multi-store retail operation, the model significantly improves demand prediction accuracy compared to traditional methods. The results demonstrate the potential to reduce inventory imbalances, lower operational costs, and enable faster, data-driven decision-making across the supply chain.</p>
-<section id="business-context-and-problem-statement" class="level2">
-<h2 class="anchored" data-anchor-id="business-context-and-problem-statement">2. Business Context and Problem Statement</h2>
-<p>The company operates a complex retail network with over <strong>22,000 products across 60 locations</strong>. Current demand planning relies on manual adjustments and simple statistical methods that fail to capture heterogeneous patterns by store, product, and seasonality. This leads to chronic overstocking, frequent stockouts, lost revenue, and declining customer satisfaction. The business objective is to materially reduce forecasting error to support inventory optimization and improve operational efficiency.</p>
+<section id="demand-forecasting-working-environment" class="level1">
+<h1>Demand Forecasting – Working Environment</h1>
+<p>This repository constitutes the <strong>working environment for the Demand Forecasting project</strong>. It contains all the necessary notebooks, scripts, and technical requirements to reproduce the end-to-end Machine Learning workflow used to predict future sales in a retail context.</p>
+<hr>
+<section id="project-overview" class="level2">
+<h2 class="anchored" data-anchor-id="project-overview">Project Overview</h2>
+<p>The main objective of this project is to develop an <strong>end-to-end demand forecasting model</strong>, covering the full data science lifecycle: data exploration, data cleaning, feature engineering, model experimentation, training, evaluation, and prediction.</p>
+<p>The work is primarily documented and executed through Jupyter notebooks, with a clear separation between exploratory work and the final, streamlined modeling pipeline.</p>
+<hr>
 </section>
-<section id="data-overview" class="level2">
-<h2 class="anchored" data-anchor-id="data-overview">3. Data Overview</h2>
-<p>The analysis uses three years of historical daily sales data, comprising millions of transactions. Additional datasets provide product, category, and store metadata. Data were aggregated to a monthly level to balance signal strength and operational relevance. While coverage is broad, demand distributions are highly sparse and skewed, reflecting the long-tail nature of retail sales.</p>
-<div id="7dee8001" class="cell" data-execution_count="2">
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb1"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a>data <span class="op">=</span> pd.read_feather(<span class="st">'data/clean_data.feather'</span>)</span>
-<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a>data.head()</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
-<div class="cell-output cell-output-display" data-execution_count="2">
-<div>
-
-
-<table class="dataframe caption-top table table-sm table-striped small" data-border="1">
-<thead>
-<tr class="header">
-<th data-quarto-table-cell-role="th"></th>
-<th data-quarto-table-cell-role="th">date</th>
-<th data-quarto-table-cell-role="th">date_block_num</th>
-<th data-quarto-table-cell-role="th">shop_id</th>
-<th data-quarto-table-cell-role="th">item_id</th>
-<th data-quarto-table-cell-role="th">item_price</th>
-<th data-quarto-table-cell-role="th">item_cnt_day</th>
-<th data-quarto-table-cell-role="th">item_name</th>
-<th data-quarto-table-cell-role="th">item_category_id</th>
-<th data-quarto-table-cell-role="th">item_category_name</th>
-<th data-quarto-table-cell-role="th">shop_name</th>
-</tr>
-</thead>
-<tbody>
-<tr class="odd">
-<th data-quarto-table-cell-role="th">0</th>
-<td>2013-01-02</td>
-<td>0</td>
-<td>59</td>
-<td>22154</td>
-<td>999.00</td>
-<td>1.0</td>
-<td>ЯВЛЕНИЕ 2012 (BD)</td>
-<td>37</td>
-<td>Кино - Blu-Ray</td>
-<td>Ярославль ТЦ "Альтаир"</td>
-</tr>
-<tr class="even">
-<th data-quarto-table-cell-role="th">1</th>
-<td>2013-01-03</td>
-<td>0</td>
-<td>25</td>
-<td>2552</td>
-<td>899.00</td>
-<td>1.0</td>
-<td>DEEP PURPLE&nbsp;&nbsp;The House Of Blue Light&nbsp;&nbsp;LP</td>
-<td>58</td>
-<td>Музыка - Винил</td>
-<td>Москва ТРК "Атриум"</td>
-</tr>
-<tr class="odd">
-<th data-quarto-table-cell-role="th">2</th>
-<td>2013-01-05</td>
-<td>0</td>
-<td>25</td>
-<td>2552</td>
-<td>899.00</td>
-<td>-1.0</td>
-<td>DEEP PURPLE&nbsp;&nbsp;The House Of Blue Light&nbsp;&nbsp;LP</td>
-<td>58</td>
-<td>Музыка - Винил</td>
-<td>Москва ТРК "Атриум"</td>
-</tr>
-<tr class="even">
-<th data-quarto-table-cell-role="th">3</th>
-<td>2013-01-06</td>
-<td>0</td>
-<td>25</td>
-<td>2554</td>
-<td>1709.05</td>
-<td>1.0</td>
-<td>DEEP PURPLE&nbsp;&nbsp;Who Do You Think We Are&nbsp;&nbsp;LP</td>
-<td>58</td>
-<td>Музыка - Винил</td>
-<td>Москва ТРК "Атриум"</td>
-</tr>
-<tr class="odd">
-<th data-quarto-table-cell-role="th">4</th>
-<td>2013-01-15</td>
-<td>0</td>
-<td>25</td>
-<td>2555</td>
-<td>1099.00</td>
-<td>1.0</td>
-<td>DEEP PURPLE 30 Very Best Of 2CD (Фирм.)</td>
-<td>56</td>
-<td>Музыка - CD фирменного производства</td>
-<td>Москва ТРК "Атриум"</td>
-</tr>
-</tbody>
-</table>
-
-</div>
-</div>
-</div>
-</section>
-<section id="modeling-approach" class="level2">
-<h2 class="anchored" data-anchor-id="modeling-approach">4. Modeling Approach</h2>
-<p>An end-to-end data science pipeline was implemented, including data cleaning, feature engineering, and supervised learning. Features capture temporal dynamics, seasonality, lagged demand, and cross-sectional effects across products and stores. Multiple machine learning models were evaluated and compared against a naive baseline to ensure measurable performance gains.</p>
-</section>
-<section id="model-performance-and-results" class="level2">
-<h2 class="anchored" data-anchor-id="model-performance-and-results">5. Model Performance and Results</h2>
-<p>The selected model achieves a substantial reduction in RMSE relative to traditional forecasting approaches. Performance is strongest for high-volume products but remains stable across most categories and stores. Results indicate that the model is capable of learning complex, non-linear demand patterns that are not captured by rule-based methods.</p>
-</section>
-<section id="business-impact-interpretation" class="level2">
-<h2 class="anchored" data-anchor-id="business-impact-interpretation">6. Business Impact Interpretation</h2>
-<p>Improved forecast accuracy directly translates into better inventory decisions. Reducing prediction error enables lower safety stock levels, fewer stockouts, and faster replenishment cycles. From a strategic perspective, the model supports a shift from reactive planning to proactive, data-driven inventory management aligned with margin and service-level objectives.</p>
-</section>
-<section id="limitations-and-risks" class="level2">
-<h2 class="anchored" data-anchor-id="limitations-and-risks">7. Limitations and Risks</h2>
-<p>The model relies on historical patterns and may underperform during structural breaks such as major market disruptions or product launches. Data sparsity for low-selling items limits predictive power at the extreme tail. Additionally, model outputs require careful integration into operational processes to avoid over-automation risks.</p>
-</section>
-<section id="recommendations-and-next-steps" class="level2">
-<h2 class="anchored" data-anchor-id="recommendations-and-next-steps">8. Recommendations and Next Steps</h2>
+<section id="main-notebook" class="level2">
+<h2 class="anchored" data-anchor-id="main-notebook">Main Notebook</h2>
+<section id="forecast_predict_model.ipynb" class="level3">
+<h3 class="anchored" data-anchor-id="forecast_predict_model.ipynb"><code>forecast_predict_model.ipynb</code></h3>
+<p>This notebook is the <strong>core working document</strong> of the project. It includes:</p>
 <ul>
-<li>Deploy the model in a pilot phase for selected stores and product categories.</li>
-<li>Introduce daily or weekly forecast updates with confidence intervals.</li>
-<li>Incorporate external signals such as promotions, holidays, and pricing.</li>
-<li>Invest in MLOps capabilities to monitor performance drift and retrain models regularly.</li>
+<li>In-depth exploration and understanding of the dataset<br>
+</li>
+<li>Careful data cleaning and preprocessing<br>
+</li>
+<li>Extensive feature engineering, including the creation of lags and aggregated variables<br>
+</li>
+<li>Detailed reasoning and decision-making behind each transformation applied to the data<br>
+</li>
+<li>Exploration and comparison of two modeling approaches:
+<ul>
+<li><strong>XGBoost</strong></li>
+<li><strong>Ridge Regression</strong></li>
+</ul></li>
 </ul>
+<p>This notebook reflects the full analytical process and experimentation carried out during the project.</p>
+<hr>
 </section>
-<section id="appendix" class="level2">
-<h2 class="anchored" data-anchor-id="appendix">9. Appendix</h2>
-<p>The appendix contains detailed feature definitions, model configurations, validation methodology, and supplementary performance metrics. It also documents assumptions, data transformations, and reproducibility guidelines for future extensions.</p>
+</section>
+<section id="modular-notebook-pipeline" class="level2">
+<h2 class="anchored" data-anchor-id="modular-notebook-pipeline">Modular Notebook Pipeline</h2>
+<p>In addition to the main working notebook, the repository includes a <strong>cleaned and structured version of the final workflow</strong>, split into three notebooks:</p>
+<ul>
+<li><p><strong><code>01_eda.ipynb</code></strong><br>
+→ Exploratory Data Analysis (EDA)</p></li>
+<li><p><strong><code>02_features.ipynb</code></strong><br>
+→ Feature engineering and lag generation</p></li>
+<li><p><strong><code>03_train.ipynb</code></strong><br>
+→ Model training, prediction, and generation of <code>submission.csv</code></p></li>
+</ul>
+<p>These notebooks represent the <strong>final, concise pipeline</strong> used for this delivery.</p>
+<hr>
+</section>
+<section id="technical-requirements" class="level2">
+<h2 class="anchored" data-anchor-id="technical-requirements">Technical Requirements</h2>
+<p>The repository includes the files that specify the <strong>technical requirements</strong> needed to run the notebooks and scripts correctly (e.g., dependencies and environment configuration).</p>
+<hr>
+</section>
+<section id="notes" class="level2">
+<h2 class="anchored" data-anchor-id="notes">Notes</h2>
+<ul>
+<li>The project is designed to be reproducible end-to-end.<br>
+</li>
+<li>All modeling and feature engineering decisions are documented either in the main notebook or in the modular pipeline.<br>
+</li>
+<li>The focus is on methodological rigor, interpretability, and clear communication of results.</li>
+</ul>
 </section>
 </section>
 
