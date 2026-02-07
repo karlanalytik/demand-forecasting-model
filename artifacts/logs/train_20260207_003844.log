@@ -1,0 +1,8 @@
+2026-02-07 00:38:44,113 - __main__ - INFO - Starting training pipeline
+2026-02-07 00:38:44,113 - __main__ - INFO - Loading data from data/prep/sales_prep.csv
+2026-02-07 00:38:44,622 - __main__ - INFO - Using split date: 24.0
+2026-02-07 00:38:44,701 - __main__ - INFO - Train size: 1302044 rows | Validation size: 307080 rows
+2026-02-07 00:38:44,701 - __main__ - INFO - Training XGBoost model
+2026-02-07 00:39:10,893 - __main__ - INFO - Validation RMSE: 9.6044
+2026-02-07 00:39:10,927 - __main__ - INFO - Model saved at artifacts/xgboost_model.joblib
+2026-02-07 00:39:10,927 - __main__ - INFO - Training pipeline completed successfully in 26.81 seconds

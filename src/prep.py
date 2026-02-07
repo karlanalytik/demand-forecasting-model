@@ -5,9 +5,31 @@ This module loads raw data from CSV files, performs data cleaning and
 feature engineering, and saves the prepared dataset for model training.
 """
 
+import logging
 import os
+import time
+from datetime import datetime
 
 import pandas as pd
+
+# =========================
+# Logging configuration
+# =========================
+LOG_DIR = "artifacts/logs"
+
+timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+
+logging.basicConfig(
+    level=logging.INFO,
+    format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
+    handlers=[
+        logging.FileHandler(os.path.join(LOG_DIR, f"prep_{timestamp}.log")),
+        logging.StreamHandler(),
+    ],
+)
+
+logger = logging.getLogger(__name__)
+
 
 # =========================
 # Paths
@@ -32,6 +54,8 @@ def load_raw_data(path: str) -> pd.DataFrame:
     pd.DataFrame
         Merged DataFrame containing sales, items, categories, and shops data.
     """
+    logger.info("Loading raw data from %s", path)
+
     sales = pd.read_csv(os.path.join(path, "sales_train.csv"))
     items = pd.read_csv(os.path.join(path, "items.csv"))
     categories  = pd.read_csv(os.path.join(path, "item_categories.csv"))
@@ -41,6 +65,7 @@ def load_raw_data(path: str) -> pd.DataFrame:
     df = pd.merge(df, categories, how="left", on="item_category_id")
     df = pd.merge(df, shops, how="left", on="shop_id")
 
+    logger.info("Raw data loaded: %d rows", len(df))
     return df
 
 
@@ -60,6 +85,8 @@ def clean_data(df: pd.DataFrame) -> pd.DataFrame:
     pd.DataFrame
         Cleaned DataFrame.
     """
+    logger.info("Starting data cleaning")
+
     df = df.copy()
 
     df["date"] = pd.to_datetime(
@@ -68,12 +95,18 @@ def clean_data(df: pd.DataFrame) -> pd.DataFrame:
         errors="coerce"
     )
 
+    before = len(df)
     df.drop_duplicates(inplace=True)
+    after = len(df)
+
+    if before != after:
+        logger.info("Removed %d duplicate rows", before - after)
     # Remove negative sales (common in this dataset)
     #if "item_cnt_day" in df.columns:
     #    df = df[df["item_cnt_day"] >= 0]
     df.reset_index(drop=True, inplace=True)
 
+    logger.info("Data cleaning completed")
     return df
 
 
@@ -93,6 +126,8 @@ def feature_engineering(df: pd.DataFrame) -> pd.DataFrame:
     pd.DataFrame
         DataFrame containing monthly aggregated features.
     """
+    logger.info("Starting feature engineering")
+
     df = df.copy()
 
     df["year"] = df["date"].dt.year
@@ -116,6 +151,7 @@ def feature_engineering(df: pd.DataFrame) -> pd.DataFrame:
             .sort_values(by="date_block_num")
     )
 
+    logger.info("Feature engineering completed")
     return monthly
 
 
@@ -135,24 +171,31 @@ def save_prepared_data(df: pd.DataFrame, path: str) -> None:
     """
     os.makedirs(path, exist_ok=True)
     output_path = os.path.join(path, "sales_prep.csv")
+
     df.to_csv(output_path, index=False)
+    logger.info("Prepared data saved to %s", output_path)
 
 
 def main() -> None:
     """Run the full data preparation pipeline."""
-    print("Loading raw data...")
-    df = load_raw_data(RAW_DATA_PATH)
+    start_time = time.time()
+    logger.info("Starting data preparation pipeline")
 
-    print("Cleaning data...")
-    df = clean_data(df)
+    try:
+        df = load_raw_data(RAW_DATA_PATH)
+        df = clean_data(df)
+        df = feature_engineering(df)
+        save_prepared_data(df, PREP_DATA_PATH)
 
-    print("Creating features...")
-    df = feature_engineering(df)
+    except Exception:
+        logger.exception("Data preparation failed")
+        raise
 
-    print("Saving prepared data...")
-    save_prepared_data(df, PREP_DATA_PATH)
-
-    print("Data preparation completed successfully.")
+    duration = time.time() - start_time
+    logger.info(
+        "Data preparation completed successfully in %.2f seconds",
+        duration,
+    )
 
 
 if __name__ == "__main__":
