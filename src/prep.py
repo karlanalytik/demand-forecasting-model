@@ -6,8 +6,8 @@ feature engineering, and saves the prepared dataset for model training.
 """
 
 import os
-import pandas as pd
 
+import pandas as pd
 
 # =========================
 # Paths
@@ -63,11 +63,11 @@ def clean_data(df: pd.DataFrame) -> pd.DataFrame:
     df = df.copy()
 
     df["date"] = pd.to_datetime(
-        df["date"], 
-        format="%d.%m.%Y", 
+        df["date"],
+        format="%d.%m.%Y",
         errors="coerce"
     )
-    
+
     df.drop_duplicates(inplace=True)
     # Remove negative sales (common in this dataset)
     #if "item_cnt_day" in df.columns:
@@ -101,12 +101,12 @@ def feature_engineering(df: pd.DataFrame) -> pd.DataFrame:
     monthly = (
         df.groupby(
             [
-                "month", 
-                "date_block_num", 
-                "shop_id", 
-                "item_id", 
+                "month",
+                "date_block_num",
+                "shop_id",
+                "item_id",
                 "item_category_id"
-            ], 
+            ],
             as_index = False
         )
         .agg(
