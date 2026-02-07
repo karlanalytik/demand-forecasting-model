@@ -9,14 +9,12 @@ and saves the trained model artifacts.
 import argparse
 import os
 from pathlib import Path
-from typing import Tuple
 
 import joblib
 import numpy as np
 import pandas as pd
 import xgboost as xgb
 from sklearn.metrics import mean_squared_error
-
 
 # =========================
 # Paths
@@ -95,7 +93,7 @@ def train_val_split(
     data: pd.DataFrame,
     target: str,
     time_col: str = "date"
-) -> Tuple[pd.DataFrame, pd.DataFrame, pd.Series, pd.Series]:
+) -> tuple[pd.DataFrame, pd.DataFrame, pd.Series, pd.Series]:
     """Split data into train and validation sets using time-based logic.
 
     The split is performed using the 80th percentile of the time column.
@@ -125,21 +123,23 @@ def train_val_split(
     train = data[data[time_col] <= split_date]
     val = data[data[time_col] > split_date]
 
-    X_train = train.drop(columns=[target])
-    y_train = train[target]
+    X_train = train.drop(columns=[target])  # noqa: N806  # pylint: disable=invalid-name
+    y_train = train[target]  # noqa: N806  # pylint: disable=invalid-name
 
-    X_val = val.drop(columns=[target])
-    y_val = val[target]
+    X_val = val.drop(columns=[target])  # noqa: N806  # pylint: disable=invalid-name
+    y_val = val[target]  # noqa: N806  # pylint: disable=invalid-name
+    # noqa justified because X_train/X_val is standard ML notation
 
     return X_train, X_val, y_train, y_val
 
 
 def train_model(
-    X_train: pd.DataFrame,
+    X_train: pd.DataFrame,  # noqa: N803  # pylint: disable=invalid-name
     y_train: pd.Series,
-    X_val: pd.DataFrame,
+    X_val: pd.DataFrame,  # noqa: N803  # pylint: disable=invalid-name
     y_val: pd.Series,
 ) -> xgb.XGBRegressor:
+    # noqa justified because X_train/X_val is standard ML notation
     """Train an XGBoost regression model.
 
     Parameters
@@ -180,9 +180,10 @@ def train_model(
 
 def evaluate(
     model: xgb.XGBRegressor,
-    X_val: pd.DataFrame,
+    X_val: pd.DataFrame,  # noqa: N803  # pylint: disable=invalid-name
     y_val: pd.Series,
-) -> Tuple[np.ndarray, float]:
+) -> tuple[np.ndarray, float]:
+    # noqa justified because X_val is standard ML notation
     """Evaluate the model using RMSE.
 
     Parameters
@@ -233,14 +234,15 @@ def main() -> None:
     time_col = "date_block_num"
     target = args.target
 
-    data = data.sort_values(time_col).reset_index(drop=True)
+    data = data.sort_values(time_col).reset_index(drop = True)
 
     print("Splitting model...")
-    X_train, X_val, y_train, y_val = train_val_split(
+    X_train, X_val, y_train, y_val = train_val_split(  # noqa: N806  # pylint: disable=invalid-name
         data,
         target=target,
         time_col=time_col
     )
+    # noqa justified because X_train/X_val is standard ML notation
 
     print("Training model...")
     model = train_model(X_train, y_train, X_val, y_val)

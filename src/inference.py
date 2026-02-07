@@ -13,7 +13,6 @@ from pathlib import Path
 import joblib
 import pandas as pd
 
-
 # =========================
 # Paths
 # =========================
@@ -96,20 +95,19 @@ def load_inference_data(input_path: str) -> pd.DataFrame:
     df = pd.merge(df, shops, how="left", on ="shop_id")
 
     cols = [
-        col 
-        for col in sales_hist.columns 
+        col
+        for col in sales_hist.columns
         if col not in ["date_block_num", "item_category_id", "item_cnt_month"]
     ]
 
     latest_sales = sales_hist[
         sales_hist["date_block_num"] == sales_hist["date_block_num"].max()
     ][cols]
-    # TODO: Aquí definir month
 
     df = pd.merge(
-        df, 
-        latest_sales, 
-        how="left", 
+        df,
+        latest_sales,
+        how="left",
         on=["shop_id", "item_id"]
     )
 
@@ -164,7 +162,8 @@ def main() -> None:
         if col not in ["ID", "item_cnt_month"]
     ]
 
-    X = df[feature_cols]
+    X = df[feature_cols]  # noqa: N806  # pylint: disable=invalid-name
+    # noqa justified because X/y is standard ML notation
 
     print("Loading trained model...")
     model = joblib.load(model_path)
