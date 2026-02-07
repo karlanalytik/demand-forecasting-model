@@ -1,0 +1,12 @@
+2026-02-07 00:39:22,691 - __main__ - INFO - Starting inference pipeline
+2026-02-07 00:39:22,692 - __main__ - INFO - Loading inference input data
+2026-02-07 00:39:23,409 - __main__ - INFO - Inference dataset assembled: 214200 rows
+2026-02-07 00:39:23,413 - __main__ - INFO - Creating features for inference
+2026-02-07 00:39:23,413 - __main__ - INFO - Running feature engineering for inference
+2026-02-07 00:39:23,424 - __main__ - INFO - Feature matrix shape: (214200, 6)
+2026-02-07 00:39:23,425 - __main__ - INFO - Loading trained model from artifacts/xgboost_model.joblib
+2026-02-07 00:39:24,339 - __main__ - INFO - Running predictions
+2026-02-07 00:39:25,277 - __main__ - INFO - Predictions saved to data/predictions/predictions.csv
+2026-02-07 00:39:25,277 - __main__ - INFO - Total predictions: 214200
+2026-02-07 00:39:25,277 - __main__ - INFO - Inference completed successfully
+2026-02-07 00:39:25,277 - __main__ - INFO - Inference pipeline completed successfully in 2.59 seconds

@@ -7,7 +7,10 @@ and saves the trained model artifacts.
 """
 
 import argparse
+import logging
 import os
+import time
+from datetime import datetime
 from pathlib import Path
 
 import joblib
@@ -15,6 +18,25 @@ import numpy as np
 import pandas as pd
 import xgboost as xgb
 from sklearn.metrics import mean_squared_error
+
+# =========================
+# Logging configuration
+# =========================
+LOG_DIR = "artifacts/logs"
+
+timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+
+logging.basicConfig(
+    level=logging.INFO,
+    format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
+    handlers=[
+        logging.FileHandler(os.path.join(LOG_DIR, f"train_{timestamp}.log")),
+        logging.StreamHandler(),
+    ],
+)
+
+logger = logging.getLogger(__name__)
+
 
 # =========================
 # Paths
@@ -84,9 +106,10 @@ def load_data(path: str) -> pd.DataFrame:
     pd.DataFrame
         Loaded dataset.
     """
-    df = pd.read_csv(os.path.join(PROJECT_ROOT, path))
-    print(f"Loading data from {path}")
-    return df
+    full_path = os.path.join(PROJECT_ROOT, path)
+    logger.info("Loading data from %s", path)
+
+    return pd.read_csv(full_path)
 
 
 def train_val_split(
@@ -119,6 +142,7 @@ def train_val_split(
         Validation target.
     """
     split_date = data[time_col].quantile(0.8)
+    logger.info("Using split date: %s", split_date)
 
     train = data[data[time_col] <= split_date]
     val = data[data[time_col] > split_date]
@@ -129,6 +153,12 @@ def train_val_split(
     X_val = val.drop(columns=[target])  # noqa: N806  # pylint: disable=invalid-name
     y_val = val[target]  # noqa: N806  # pylint: disable=invalid-name
     # noqa justified because X_train/X_val is standard ML notation
+
+    logger.info(
+        "Train size: %d rows | Validation size: %d rows",
+        len(train),
+        len(val),
+    )
 
     return X_train, X_val, y_train, y_val
 
@@ -158,6 +188,8 @@ def train_model(
     xgb.XGBRegressor
         Trained XGBoost model.
     """
+    logger.info("Training XGBoost model")
+
     model = xgb.XGBRegressor(
         n_estimators=500,
         learning_rate=0.05,
@@ -205,7 +237,7 @@ def evaluate(
     preds = model.predict(X_val)
     rmse = np.sqrt(mean_squared_error(y_val, preds))
 
-    print(f"Validation RMSE: {rmse:.4f}")
+    logger.info("Validation RMSE: %.4f", rmse)
     return preds, rmse
 
 
@@ -221,39 +253,43 @@ def save_model(model: xgb.XGBRegressor, path: str) -> None:
     """
     os.makedirs(os.path.dirname(path), exist_ok=True)
     joblib.dump(model, path)
-    print(f"Model saved at {path}")
+
+    logger.info("Model saved at %s", path)
 
 
 def main() -> None:
     """Run the full training pipeline."""
-    args = parse_args()
+    start_time = time.time()
+    logger.info("Starting training pipeline")
 
-    print("Loading prepared data...")
-    data = load_data(args.data_path)
+    try:
+        args = parse_args()
 
-    time_col = "date_block_num"
-    target = args.target
+        data = load_data(args.data_path)
 
-    data = data.sort_values(time_col).reset_index(drop = True)
+        time_col = "date_block_num"
+        data = data.sort_values(time_col).reset_index(drop=True)
 
-    print("Splitting model...")
-    X_train, X_val, y_train, y_val = train_val_split(  # noqa: N806  # pylint: disable=invalid-name
-        data,
-        target=target,
-        time_col=time_col
+        X_train, X_val, y_train, y_val = train_val_split(  # noqa: N806  # pylint: disable=invalid-name
+            data,
+            target=args.target,
+            time_col=time_col
+        )
+        # noqa justified because X_train/X_val is standard ML notation
+
+        model = train_model(X_train, y_train, X_val, y_val)
+        evaluate(model, X_val, y_val)
+        save_model(model, args.model_path)
+
+    except Exception:
+        logger.exception("Training pipeline failed")
+        raise
+
+    duration = time.time() - start_time
+    logger.info(
+        "Training pipeline completed successfully in %.2f seconds",
+        duration,
     )
-    # noqa justified because X_train/X_val is standard ML notation
-
-    print("Training model...")
-    model = train_model(X_train, y_train, X_val, y_val)
-
-    print("Evaluating model...")
-    evaluate(model, X_val, y_val)
-
-    print("Saving model...")
-    save_model(model, args.model_path)
-
-    print("Training completed successfully.")
 
 
 if __name__ == "__main__":

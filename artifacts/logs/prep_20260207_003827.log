@@ -1,0 +1,10 @@
+2026-02-07 00:38:27,869 - __main__ - INFO - Starting data preparation pipeline
+2026-02-07 00:38:27,869 - __main__ - INFO - Loading raw data from data/raw
+2026-02-07 00:38:29,716 - __main__ - INFO - Raw data loaded: 2935849 rows
+2026-02-07 00:38:29,716 - __main__ - INFO - Starting data cleaning
+2026-02-07 00:38:31,770 - __main__ - INFO - Removed 6 duplicate rows
+2026-02-07 00:38:31,770 - __main__ - INFO - Data cleaning completed
+2026-02-07 00:38:31,795 - __main__ - INFO - Starting feature engineering
+2026-02-07 00:38:32,573 - __main__ - INFO - Feature engineering completed
+2026-02-07 00:38:36,042 - __main__ - INFO - Prepared data saved to data/prep/sales_prep.csv
+2026-02-07 00:38:36,043 - __main__ - INFO - Data preparation completed successfully in 8.17 seconds

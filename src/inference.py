@@ -7,11 +7,33 @@ results to disk.
 """
 
 import argparse
+import logging
 import os
+import time
+from datetime import datetime
 from pathlib import Path
 
 import joblib
 import pandas as pd
+
+# =========================
+# Logging configuration
+# =========================
+LOG_DIR = "artifacts/logs"
+
+timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+
+logging.basicConfig(
+    level=logging.INFO,
+    format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
+    handlers=[
+        logging.FileHandler(os.path.join(LOG_DIR, f"inference_{timestamp}.log")),
+        logging.StreamHandler(),
+    ],
+)
+
+logger = logging.getLogger(__name__)
+
 
 # =========================
 # Paths
@@ -81,6 +103,8 @@ def load_inference_data(input_path: str) -> pd.DataFrame:
     pd.DataFrame
         DataFrame containing features required for inference.
     """
+    logger.info("Loading inference input data")
+
     catalog_path = PROJECT_ROOT / RAW_DATA_PATH
     prepared_data_path = PROJECT_ROOT / PREP_DATA_PATH
 
@@ -111,6 +135,7 @@ def load_inference_data(input_path: str) -> pd.DataFrame:
         on=["shop_id", "item_id"]
     )
 
+    logger.info("Inference dataset assembled: %s rows", len(df))
     return df[["ID", "shop_id", "item_id", "item_category_id", "avg_price"]]
 
 
@@ -130,6 +155,8 @@ def feature_engineering(df: pd.DataFrame) -> pd.DataFrame:
     pd.DataFrame
         DataFrame with inference features.
     """
+    logger.info("Running feature engineering for inference")
+
     df = df.copy()
 
     #df["year"] = df["date"].dt.year
@@ -141,43 +168,56 @@ def feature_engineering(df: pd.DataFrame) -> pd.DataFrame:
 
 def main() -> None:
     """Run the batch inference pipeline."""
-    args = parse_args()
+    start_time = time.time()
+    logger.info("Starting inference pipeline")
 
-    input_path = PROJECT_ROOT / args.input_path
-    model_path = PROJECT_ROOT / args.model_path
-    output_path = PROJECT_ROOT / args.output_path
+    try:
+        args = parse_args()
 
-    output_path.parent.mkdir(parents=True, exist_ok=True)
+        input_path = PROJECT_ROOT / args.input_path
+        model_path = PROJECT_ROOT / args.model_path
+        output_path = PROJECT_ROOT / args.output_path
 
-    print("Loading inference data...")
-    df = load_inference_data(input_path)
+        output_path.parent.mkdir(parents=True, exist_ok=True)
 
-    print(f"Rows loaded: {len(df)}")
+        df = load_inference_data(input_path)
 
-    print("Creating features...")
-    df = feature_engineering(df)
+        logger.info("Creating features for inference")
+        df = feature_engineering(df)
 
-    feature_cols = [
-        col for col in df.columns
-        if col not in ["ID", "item_cnt_month"]
-    ]
+        feature_cols = [
+            col for col in df.columns
+            if col not in ["ID", "item_cnt_month"]
+        ]
 
-    X = df[feature_cols]  # noqa: N806  # pylint: disable=invalid-name
-    # noqa justified because X/y is standard ML notation
+        X = df[feature_cols]  # noqa: N806  # pylint: disable=invalid-name
+        # noqa justified because X/y is standard ML notation
+        logger.info("Feature matrix shape: %s", X.shape)
 
-    print("Loading trained model...")
-    model = joblib.load(model_path)
+        logger.info("Loading trained model from %s", args.model_path)
+        model = joblib.load(model_path)
 
-    print("Running predictions...")
-    preds = model.predict(X)
+        logger.info("Running predictions")
+        preds = model.predict(X)
 
-    results = df.copy()
-    results["item_cnt_month"] = preds
+        results = df.copy()
+        results["item_cnt_month"] = preds
 
-    print(f"Saving predictions to {output_path}")
-    results[["ID", "item_cnt_month"]].to_csv(output_path, index=False)
+        results[["ID", "item_cnt_month"]].to_csv(output_path, index=False)
+        logger.info("Predictions saved to %s", args.output_path)
+        logger.info("Total predictions: %s", len(results))
 
-    print("Inference completed successfully.")
+        logger.info("Inference completed successfully")
+
+    except Exception:
+        logger.exception("Inference pipeline failed")
+        raise
+
+    duration = time.time() - start_time
+    logger.info(
+        "Inference pipeline completed successfully in %.2f seconds",
+        duration,
+    )
 
 
 if __name__ == "__main__":

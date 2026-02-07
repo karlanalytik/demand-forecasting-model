@@ -160,4 +160,6 @@ uv run python src/inference.py --input_path data/inference/test.csv --model_path
 
 The repository includes the files that specify the **technical requirements** needed to run the notebooks and scripts correctly (e.g., dependencies and environment configuration).
 
+## Linters evaluation
 
+![Pylint evaluation](docs/images/pylint_evidence.png)
