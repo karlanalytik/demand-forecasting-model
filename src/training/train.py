@@ -1,4 +1,4 @@
-# src/train.py
+# src/training/train.py
 """Model training module.
 
 This module loads prepared data, performs a time-based train/validation
@@ -41,7 +41,7 @@ logger = logging.getLogger(__name__)
 # =========================
 # Paths
 # =========================
-PROJECT_ROOT = Path(__file__).resolve().parents[1]
+PROJECT_ROOT = Path(__file__).resolve().parents[2]
 
 
 # =========================

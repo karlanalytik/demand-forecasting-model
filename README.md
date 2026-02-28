@@ -74,12 +74,12 @@ All scripts are designed to be executed **from the root of the repository** usin
 
 ### 1. Prepare the data
 ```bash
-uv run python src/prep.py
+uv run python src/preprocessing/prep.py
 ```
 
 ### 2. Train the model
 ```bash
-uv run python src/train.py
+uv run python src/training/train.py
 ```
 
 ### 3. Run batch inference

@@ -1,4 +1,4 @@
-# src/prep.py
+# src/preprocessing/prep.py
 """Data preparation module.
 
 This module loads raw data from CSV files, performs data cleaning and

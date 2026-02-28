@@ -38,7 +38,7 @@ logger = logging.getLogger(__name__)
 # =========================
 # Paths
 # =========================
-PROJECT_ROOT = Path(__file__).resolve().parents[1]
+PROJECT_ROOT = Path(__file__).resolve().parents[2]
 
 RAW_DATA_PATH = "data/raw"
 PREP_DATA_PATH = "data/prep"
