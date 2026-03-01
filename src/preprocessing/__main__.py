@@ -65,10 +65,10 @@ def main() -> None:
     logger.info("Starting preprocessing step")
 
     try:
-        df = load_raw_data(args.raw_path)
-        df = clean_data(df)
-        df = feature_engineering(df)
-        save_prepared_data(df, args.output_path)
+        data = load_raw_data(args.raw_path)
+        data = clean_data(data)
+        data = feature_engineering(data)
+        save_prepared_data(data, args.output_path)
 
     except Exception:
         logger.exception("Preprocessing failed")
