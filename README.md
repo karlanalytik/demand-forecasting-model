@@ -74,7 +74,7 @@ All scripts are designed to be executed **from the root of the repository** usin
 
 ### 1. Prepare the data
 ```bash
-uv run python src/preprocessing/prep.py
+uv run python -m src.preprocessing --raw-path data/raw --output-path data/prep
 ```
 
 ### 2. Train the model
