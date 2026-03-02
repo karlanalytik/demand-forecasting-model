@@ -79,12 +79,12 @@ uv run python -m src.preprocessing --raw-path data/raw --output-path data/prep
 
 ### 2. Train the model
 ```bash
-uv run python src/training/train.py
+uv run python -m src.training
 ```
 
 ### 3. Run batch inference
 ```bash
-uv run python src/inference.py --input_path data/inference/test.csv --model_path artifacts/xgboost_model.joblib
+uv run python -m src.inference --input_path data/inference/test.csv --model_path artifacts/xgboost_model.joblib
 ```
 
 ---
