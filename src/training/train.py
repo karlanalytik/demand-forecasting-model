@@ -168,6 +168,7 @@ def evaluate(
 
     logger.info("Validation RMSE: %.4f", rmse)
 
+    return preds,rmse
 
 def save_model(model: xgb.XGBRegressor, path: str) -> None:
     """Save trained model to disk.
