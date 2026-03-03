@@ -2,7 +2,7 @@ FROM python:3.13-slim
 WORKDIR /app
 
 # Install dependencies
-COPY requirements.txt ./
+COPY src/inference/requirements.txt ./requirements.txt
 RUN pip install --no-cache-dir -r requirements.txt
 
 # Copy source code
@@ -13,8 +13,11 @@ ENTRYPOINT ["python", "-m", "src.inference"]
 
 # Default arguments (can be overwritten)
 CMD [ \
-    "--data_path", "data/prep/sales_prep.csv", \
-    "--target", "item_cnt_month", \
+    "--input_path", "data/inference/test.csv", \
+    "--raw_data_dir", "data/raw", \
+    "--prep_data_dir", "data/prep", \
     "--model_path", "artifacts/xgboost_model.joblib", \
-    "--pred_path", "predictions/pred.csv" \
+    "--output_path", "data/predictions/predictions.csv", \
+    "--month", "11", \
+    "--date_block_num", "34" \
     ]
