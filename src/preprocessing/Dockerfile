@@ -1,15 +1,15 @@
-FROM python:3.13.12
+FROM python:3.13-slim
 WORKDIR /app
 
 # Install dependencies
 COPY requirements.txt ./
 RUN pip install --no-cache-dir -r requirements.txt
 
-# Copy code
+# Copy source code
 COPY src ./src
 
-# Define entrypoint
-ENTRYPOINT ["python", "script_v3.py"]
+# Default entrypoint
+ENTRYPOINT ["python", "-m", "src.preprocessing"]
 
-# Defect arguments (can be overwritten)
-CMD []
+# Default arguments (can be overwritten)
+CMD ["--raw-path", "data/raw", "--output-path", "data/prep"]
