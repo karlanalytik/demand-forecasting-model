@@ -22,7 +22,6 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument(
         "--input_path",
         type=str,
-        required=True,
         help="Path to inference dataset",
     )
 
