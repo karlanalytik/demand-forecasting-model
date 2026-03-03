@@ -1,41 +1,19 @@
-# src/prep.py
-"""Data preparation module.
+# src/preprocessing/prep.py
+"""Data preparation utilities.
 
-This module loads raw data from CSV files, performs data cleaning and
-feature engineering, and saves the prepared dataset for model training.
+This module provides reusable functions for loading raw data, performing 
+cleaning, generating features, and saving the prepared dataset.
 """
 
 import logging
 import os
-import time
-from datetime import datetime
 
 import pandas as pd
 
 # =========================
 # Logging configuration
 # =========================
-LOG_DIR = "artifacts/logs"
-
-timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-
-logging.basicConfig(
-    level=logging.INFO,
-    format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
-    handlers=[
-        logging.FileHandler(os.path.join(LOG_DIR, f"prep_{timestamp}.log")),
-        logging.StreamHandler(),
-    ],
-)
-
 logger = logging.getLogger(__name__)
-
-
-# =========================
-# Paths
-# =========================
-RAW_DATA_PATH = "data/raw"
-PREP_DATA_PATH = "data/prep"
 
 
 # =========================
@@ -174,29 +152,3 @@ def save_prepared_data(df: pd.DataFrame, path: str) -> None:
 
     df.to_csv(output_path, index=False)
     logger.info("Prepared data saved to %s", output_path)
-
-
-def main() -> None:
-    """Run the full data preparation pipeline."""
-    start_time = time.time()
-    logger.info("Starting data preparation pipeline")
-
-    try:
-        df = load_raw_data(RAW_DATA_PATH)
-        df = clean_data(df)
-        df = feature_engineering(df)
-        save_prepared_data(df, PREP_DATA_PATH)
-
-    except Exception:
-        logger.exception("Data preparation failed")
-        raise
-
-    duration = time.time() - start_time
-    logger.info(
-        "Data preparation completed successfully in %.2f seconds",
-        duration,
-    )
-
-
-if __name__ == "__main__":
-    main()
