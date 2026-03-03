@@ -18,6 +18,7 @@ This structure allows the workflow to be executed end-to-end in batch mode.
 ```bash
 .
 ├── artifacts
+│   ├── logs
 │   ├── RESUMEN_EJECUTIVO_files
 │   │   └── libs
 │   ├── RESUMEN_EJECUTIVO.html
@@ -36,6 +37,8 @@ This structure allows the workflow to be executed end-to-end in batch mode.
 │       ├── sales_train.csv
 │       ├── sample_submission.csv
 │       └── shops.csv
+├── docs
+│   └── images
 ├── LICENSE
 ├── notebooks
 │   ├── 01_eda.ipynb
@@ -45,10 +48,22 @@ This structure allows the workflow to be executed end-to-end in batch mode.
 ├── pyproject.toml
 ├── README.md
 ├── src
-│   ├── inference.py
+│   ├── inference
+│   │   ├── Dockerfile
+│   │   ├── inference.py
+│   │   ├── __main__.py
+│   │   └── requirements.txt
 │   ├── __init__.py
-│   ├── prep.py
-│   └── train.py
+│   ├── preprocessing
+│   │   ├── Dockerfile
+│   │   ├── __main__.py
+│   │   ├── prep.py
+│   │   └── requirements.txt
+│   └── training
+│       ├── Dockerfile
+│       ├── __main__.py
+│       ├── requirements.txt
+│       └── train.py
 └── uv.lock
 ```
 ---
@@ -162,6 +177,74 @@ Stores all generated artifacts:
 
 ---
 
+## Git Workflow
+
+We follow a structured Git workflow to ensure traceability, code quality, and collaborative development.
+
+### Branch Structure
+
+`main`
+Stable production branch. Only reviewed and validated code is merged here.
+
+`development`
+Integration branch where completed features are merged after review. This is the base branch for new work.
+
+**Feature Branches**
+All changes are developed in separate branches created from `development`.
+
+### Branch Naming Convention
+
+Branches follow a prefix-based convention to clearly indicate the type of change:
+
+- `feature/<short-description>` → New functionality
+- `refactor/<short-description>` → Code improvements without changing behavior
+- `bug/<short-description>` → Non-critical bug fixes
+- `hotfix/<short-description>` → Critical production fixes
+
+Examples:
+
+feature/add-inference-logging
+refactor/clean-training-pipeline
+bug/fix-null-handling
+hotfix/model-loading-error
+Commit Message Convention
+
+Commits follow the same prefix structure as branch names to enable easy filtering and automated parsing.
+
+Format:
+
+type: short descriptive message
+
+Examples:
+
+feature: add month argument to inference pipeline
+refactor: simplify preprocessing logic
+bug: fix incorrect date parsing
+hotfix: resolve model path issue
+
+This convention helps extract structured information from commit history and improves readability.
+
+Development Process
+
+Create a branch from development.
+
+Implement changes and commit following the commit convention.
+
+Push the branch to the remote repository.
+
+Open a Pull Request (PR) targeting development.
+
+Team members review and test the changes.
+
+Once approved, the branch is merged into development.
+
+After a development cycle is complete and all changes are validated, development is merged into main.
+
+The cycle then restarts from development.
+
+This workflow ensures isolated development, structured collaboration, controlled releases, and a clean production branch.
+
+
 ## Model Performance
 
 The final XGBoost model achieved an **RMSE of 0.9834** on the Kaggle validation set. 
@@ -190,4 +273,11 @@ This project relies on the following Python libraries:
 ---
 
 ## Linters Evaluation
+![Pylint evaluation](docs/images/pylint_evidence.png)
+
+## Screenshots
+![Preprocessing build](docs/images/docker_build_preprocessing_step.png.png)
+![Training build](docs/images/pylint_evidence.png)
+![Inference build](docs/images/pylint_evidence.png)
+![Pylint evaluation](docs/images/pylint_evidence.png)
 ![Pylint evaluation](docs/images/pylint_evidence.png)
