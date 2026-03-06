@@ -1,3 +1,16 @@
+# Demand Forecasting – End-to-End ML Repository
+
+This repository contains an **end-to-end Machine Learning workflow for demand forecasting in a retail context**, refactored from exploratory notebooks into a **production-ready repository structure**.
+
+The objective of this task is to transform a notebook-based analysis into a **reproducible, modular, and automatable pipeline**, suitable for execution on servers without human intervention.
+
+The project includes:
+- Modular ML pipeline
+- Batch preprocessing, training, and inference
+- Dockerized execution for reproducibility
+- Structured Git workflow
+- Automated testing and linting
+
 ## Project Objective and Description
 
 The goal of this project is to **forecast product demand at the shop-item level**, using historical sales data and engineered features such as lags and aggregations.
@@ -11,14 +24,11 @@ The repository follows best practices for Machine Learning projects, separating:
 
 This structure allows the workflow to be executed end-to-end in batch mode.
 
----
-
 ## Repository Structure
 
 ```bash
 .
 ├── artifacts
-│   ├── logs
 │   ├── RESUMEN_EJECUTIVO_files
 │   │   └── libs
 │   ├── RESUMEN_EJECUTIVO.html
@@ -52,17 +62,22 @@ This structure allows the workflow to be executed end-to-end in batch mode.
 │   │   ├── Dockerfile
 │   │   ├── inference.py
 │   │   ├── __main__.py
-│   │   └── requirements.txt
+│   │   ├── requirements.txt
+│   │   └── test_inference.py
 │   ├── __init__.py
 │   ├── preprocessing
 │   │   ├── Dockerfile
 │   │   ├── __main__.py
 │   │   ├── prep.py
-│   │   └── requirements.txt
+│   │   ├── requirements.txt
+│   │   └── test
+│   │       └── test_prep.py
 │   └── training
 │       ├── Dockerfile
 │       ├── __main__.py
 │       ├── requirements.txt
+│       ├── test
+│       │   └── test_train.py
 │       └── train.py
 └── uv.lock
 ```
@@ -75,17 +90,12 @@ This project uses **`uv`** for Python environment and dependency management.
 ### Requirements
 
 - Python **>= 3.12**
-- `uv` installed# Demand Forecasting – End-to-End ML Repository
-
-This repository contains an **end-to-end Machine Learning workflow for demand forecasting in a retail context**, refactored from exploratory notebooks into a **production-ready repository structure**.
-
-The objective of this task is to transform a notebook-based analysis into a **reproducible, modular, and automatable pipeline**, suitable for execution on servers without human intervention.
-
----
+- `uv` installed
+- Docker (optional, for containerized execution)
 
 ## How to Run the Pipeline
 
-All scripts are designed to be executed **from the root of the repository** using the `uv` framework.
+All the modules are designed to be executed **from the root of the repository** using the `uv` framework.
 
 ### 1. Prepare the data
 ```bash
@@ -102,7 +112,64 @@ uv run python -m src.training
 uv run python -m src.inference --input_path data/inference/test.csv --model_path artifacts/xgboost_model.joblib
 ```
 
+## Running the Pipeline with Docker
 ---
+
+Each stage of the pipeline is containerized:
+- preprocessing
+- training
+- inference
+This ensures **reproducibility and environment isolation**.
+
+### 1. Build Docker Images
+
+Run from the **repository root**.
+
+- Preprocessing image:
+
+```bash
+docker build -t ml-preprocessing:latest -f src/preprocessing/Dockerfile .
+```
+
+- Training image:
+
+```bash
+docker build -t ml-training:latest -f src/training/Dockerfile .
+```
+
+- Inference image
+```bash
+docker build -t ml-inference:latest -f src/inference/Dockerfile .
+```
+
+### 2. Run Pipeline with Docker
+
+Docker containers access project files using **mounted volumes**.
+
+1. Preprocessing
+
+```bash
+docker run --rm \
+  -v $(pwd)/data:/app/data \
+  ml-preprocessing:latest
+```
+
+2. Training
+```bash
+docker run --rm \
+  -v $(pwd)/data:/app/data \
+  ml-training:latest
+```
+
+3. Inference
+```bash
+docker run --rm \
+  -v $(pwd)/data:/app/data \
+  -v $(pwd)/artifacts:/app/artifacts \
+  ml-inference:latest \
+  --input_path data/otro_test.csv \
+  --month 12
+```
 
 ## Scripts (inputs/outputs)
 
@@ -203,11 +270,14 @@ Branches follow a prefix-based convention to clearly indicate the type of change
 
 Examples:
 
+```bash
 feature/add-inference-logging
 refactor/clean-training-pipeline
 bug/fix-null-handling
 hotfix/model-loading-error
-Commit Message Convention
+```
+
+### Commit Message Convention
 
 Commits follow the same prefix structure as branch names to enable easy filtering and automated parsing.
 
@@ -216,31 +286,25 @@ Format:
 type: short descriptive message
 
 Examples:
-
+```bash
 feature: add month argument to inference pipeline
 refactor: simplify preprocessing logic
 bug: fix incorrect date parsing
 hotfix: resolve model path issue
+```
 
 This convention helps extract structured information from commit history and improves readability.
 
-Development Process
+### Development Process
 
-Create a branch from development.
-
-Implement changes and commit following the commit convention.
-
-Push the branch to the remote repository.
-
-Open a Pull Request (PR) targeting development.
-
-Team members review and test the changes.
-
-Once approved, the branch is merged into development.
-
-After a development cycle is complete and all changes are validated, development is merged into main.
-
-The cycle then restarts from development.
+1. Create a branch from development.
+2. Implement changes and commit following the commit convention.
+3. Push the branch to the remote repository.
+4. Open a Pull Request (PR) targeting development.
+5. Team members review and test the changes.
+6. Once approved, the branch is merged into development.
+7. After a development cycle is complete and all changes are validated, development is merged into main.
+8. The cycle then restarts from development.
 
 This workflow ensures isolated development, structured collaboration, controlled releases, and a clean production branch.
 
@@ -272,12 +336,17 @@ This project relies on the following Python libraries:
 
 ---
 
-## Linters Evaluation
+## Screenshots
+
+### Linters Evaluation
 ![Pylint evaluation](docs/images/pylint_evidence.png)
 
-## Screenshots
-![Preprocessing build](docs/images/docker_build_preprocessing_step.png.png)
-![Training build](docs/images/pylint_evidence.png)
-![Inference build](docs/images/pylint_evidence.png)
-![Pylint evaluation](docs/images/pylint_evidence.png)
-![Pylint evaluation](docs/images/pylint_evidence.png)
+### Build
+![Preprocessing build](docs/images/docker_build_preprocessing_step.png)
+![Training build](docs/images/docker_build_training_step.png)
+![Inference build](docs/images/docker_build_inference_step.png)
+
+### Run
+![Preprocessing build](docs/images/docker_run_preprocessing_step.png)
+![Training build](docs/images/docker_run_training_step.png)
+![Inference build](docs/images/docker_run_inference_step.png)
