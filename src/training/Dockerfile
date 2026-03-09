@@ -1,20 +1,21 @@
-FROM python:3.13-slim
-WORKDIR /app
+FROM python:3.12-slim
 
-# Install dependencies
-COPY src/training/requirements.txt ./requirements.txt
-RUN pip install --no-cache-dir -r requirements.txt
+ENV PYTHONDONTWRITEBYTECODE=1
+ENV PYTHONUNBUFFERED=1
 
-# Copy source code
-COPY src ./src
+WORKDIR /opt/ml/code
 
-# Default entrypoint
+COPY src/training/requirements.txt /opt/ml/code/requirements.txt
+
+RUN pip install --no-cache-dir --upgrade pip && \
+    pip install --no-cache-dir -r requirements.txt
+
+COPY src /opt/ml/code/src
+
+RUN mkdir -p /opt/ml/input/data/train && \
+    mkdir -p /opt/ml/model && \
+    mkdir -p /opt/ml/output/data
+
+ENV PYTHONPATH=/opt/ml/code
+
 ENTRYPOINT ["python", "-m", "src.training"]
-
-# Default arguments (can be overwritten)
-CMD [ \
-    "--data_path", "data/prep/sales_prep.csv", \
-    "--target", "item_cnt_month", \
-    "--model_path", "artifacts/xgboost_model.joblib", \
-    "--pred_path", "predictions/pred.csv" \
-    ]
