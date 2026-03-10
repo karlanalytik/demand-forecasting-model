@@ -26,6 +26,7 @@ logger = logging.getLogger(__name__)
 # =========================
 # Argument parsing
 # =========================
+
 def parse_args() -> argparse.Namespace:
     """Parse command-line arguments with SageMaker-compatible defaults."""
     parser = argparse.ArgumentParser()
@@ -33,7 +34,7 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument(
         "--train-data-dir",
         type=str,
-        default=os.environ.get("SM_CHANNEL_TRAIN", "data/prep"),
+        default=os.environ.get("SM_CHANNEL_TRAIN", "/opt/ml/input/data/train"),
         help="Directory containing training data.",
     )
     parser.add_argument(
@@ -57,18 +58,22 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument(
         "--model-dir",
         type=str,
-        default=os.environ.get("SM_MODEL_DIR", "artifacts"),
+        default=os.environ.get("SM_MODEL_DIR", "/opt/ml/model"),
         help="Directory where the trained model will be saved.",
     )
     parser.add_argument(
         "--output-data-dir",
         type=str,
-        default=os.environ.get("SM_OUTPUT_DATA_DIR", "artifacts"),
+        default=os.environ.get("SM_OUTPUT_DATA_DIR", "/opt/ml/output/data"),
         help="Directory where metrics/output files will be saved.",
     )
 
-    return parser.parse_args()
+    args, unknown = parser.parse_known_args()
 
+    if unknown:
+        logger.info("Ignoring unknown arguments from SageMaker/container: %s", unknown)
+
+    return args
 
 # =========================
 # Functions
