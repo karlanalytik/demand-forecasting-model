@@ -5,11 +5,15 @@ This repository contains an **end-to-end Machine Learning workflow for demand fo
 The objective of this task is to transform a notebook-based analysis into a **reproducible, modular, and automatable pipeline**, suitable for execution on servers without human intervention.
 
 The project includes:
-- Modular ML pipeline
-- Batch preprocessing, training, and inference
+- Modular **ML pipeline**
+- Batch **preprocessing, training, and inference**
 - Dockerized execution for reproducibility
 - Structured Git workflow
 - Automated testing and linting
+- Custom training containers using **Docker**
+- Integration with **Amazon SageMaker for scalable model training**
+- Deployment of a **real-time inference endpoint**
+- End-to-end workflow from **local development to cloud deployment**
 
 ## Project Objective and Description
 
@@ -23,6 +27,12 @@ The repository follows best practices for Machine Learning projects, separating:
 - Artifacts (models, reports, outputs)
 
 This structure allows the workflow to be executed end-to-end in batch mode.
+
+In addition, the project includes a **cloud deployment workflow using Amazon SageMaker**, enabling scalable model training and real-time inference through custom Docker containers. The model can be trained using SageMaker training jobs and deployed to a **real-time endpoint** for on-demand predictions.
+
+The repository therefore supports both:
+- **Local batch execution** using the modular pipeline
+- **Cloud-based training and deployment** using SageMaker
 
 ## Repository Structure
 
@@ -55,6 +65,9 @@ This structure allows the workflow to be executed end-to-end in batch mode.
 │   ├── 02_features.ipynb
 │   ├── 03_train.ipynb
 │   └── forecast_predict_model.ipynb
+├── sagemaker
+│   ├── README.md
+│   ├── dem-fore-model.ipynb
 ├── pyproject.toml
 ├── README.md
 ├── src
@@ -64,6 +77,7 @@ This structure allows the workflow to be executed end-to-end in batch mode.
 │   │   ├── __main__.py
 │   │   ├── requirements.txt
 │   │   └── test_inference.py
+│   │   └── serve.py
 │   ├── __init__.py
 │   ├── preprocessing
 │   │   ├── Dockerfile
@@ -110,6 +124,13 @@ uv run python -m src.training
 ### 3. Run batch inference
 ```bash
 uv run python -m src.inference --input_path data/inference/test.csv --model_path artifacts/xgboost_model.joblib
+```
+
+### 4. Deploy and test the model on Amazon SageMaker
+
+The full deployment process — including **container build, ECR upload, SageMaker training job execution, endpoint deployment, and endpoint invocation** — is documented in the following notebook:
+```bash
+sagemaker/dem-fore-model.ipynb
 ```
 
 ## Running the Pipeline with Docker
@@ -171,6 +192,24 @@ docker run --rm \
   --month 12
 ```
 
+### 3. Docker Containers for SageMaker Deployment
+
+In addition to local Docker execution, the project also uses custom Docker containers for Amazon SageMaker.
+
+Separate container images are built for:
+- Model training
+- Real-time inference
+
+These images are pushed to Amazon Elastic Container Registry (ECR) and used by SageMaker to:
+
+- Run distributed training jobs
+- Deploy a real-time inference endpoint
+
+The complete deployment workflow is documented in:
+```bash
+sagemaker/dem-fore-model.ipynb
+```
+
 ## Scripts (inputs/outputs)
 
 ### `data/`
@@ -208,6 +247,15 @@ Exploratory and development notebooks.
   Model training and evaluation.
 
 These notebooks document the analytical reasoning behind the final pipeline.
+
+---
+
+### `sagemaker/`
+
+Deploy and test the model on Amazon SageMaker
+
+- **`dem-fore-model.ipynb`**  
+  Demonstrates the full process of building containers, pushing images to ECR, launching a SageMaker training job, and deploying the model to a real-time endpoint.
 
 ---
 
@@ -350,3 +398,12 @@ This project relies on the following Python libraries:
 ![Preprocessing build](docs/images/docker_run_preprocessing_step.png)
 ![Training build](docs/images/docker_run_training_step.png)
 ![Inference build](docs/images/docker_run_inference_step.png)
+
+### Amazon ECR/Images
+![Repositories](docs/images/ECS_demand.png)
+![Inference Image](docs/images/Image_Inference.png)
+![Trainning Image](docs/images/Image_Trainning.png)
+
+### Endpoint
+![Identifier](docs/images/Endpoint_1.png)
+![Predictions](docs/images/Endpoint_2.png)
