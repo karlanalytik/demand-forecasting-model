@@ -10,29 +10,31 @@ The project includes:
 - Dockerized execution for reproducibility
 - Structured Git workflow
 - Automated testing and linting
-- Custom training containers using **Docker**
-- Integration with **Amazon SageMaker for scalable model training**
+- Custom containers using **Docker** for both **training** and **preprocessing**
+- Integration with **Amazon SageMaker** for scalable **processing and model training**
 - Deployment of a **real-time inference endpoint**
+- A custom **SageMaker Processing Job (BYOC)** for data transformation with `pandas` and `scikit-learn`
 - End-to-end workflow from **local development to cloud deployment**
 
 ## Project Objective and Description
 
-The goal of this project is to **forecast product demand at the shop-item level**, using historical sales data and engineered features such as lags and aggregations.
+The goal of this project is to **forecast product demand at the shop-item level**, using historical sales data and engineered features such as aggregations and temporal transformations.
 
 The repository follows best practices for Machine Learning projects, separating:
 - Raw data
 - Prepared data
+- Preprocessing logic
 - Training scripts
 - Inference scripts
 - Artifacts (models, reports, outputs)
 
 This structure allows the workflow to be executed end-to-end in batch mode.
 
-In addition, the project includes a **cloud deployment workflow using Amazon SageMaker**, enabling scalable model training and real-time inference through custom Docker containers. The model can be trained using SageMaker training jobs and deployed to a **real-time endpoint** for on-demand predictions.
+In addition, the project includes a **cloud deployment workflow using Amazon SageMaker**, enabling scalable data processing, model training, and real-time inference through custom Docker containers. Data preprocessing is implemented as a **SageMaker Processing Job (BYOC)**, ensuring that raw data can be transformed into training-ready features in a reproducible and scalable way. The model can then be trained using SageMaker training jobs and deployed to a **real-time endpoint** for on-demand predictions.
 
 The repository therefore supports both:
 - **Local batch execution** using the modular pipeline
-- **Cloud-based training and deployment** using SageMaker
+- **Cloud-based preprocessing, training, and deployment** using SageMaker
 
 ## Repository Structure
 
@@ -65,6 +67,13 @@ The repository therefore supports both:
 │   ├── 02_features.ipynb
 │   ├── 03_train.ipynb
 │   └── forecast_predict_model.ipynb
+├── processing
+│   ├── README.md
+│   ├── sm_processing_byoc.ipynb
+│   ├── code
+│   │   ├── preprocess.py
+│   ├── container
+│   │   ├── Dockerfile
 ├── sagemaker
 │   ├── README.md
 │   ├── dem-fore-model.ipynb
@@ -105,7 +114,9 @@ This project uses **`uv`** for Python environment and dependency management.
 
 - Python **>= 3.12**
 - `uv` installed
-- Docker (optional, for containerized execution)
+- Docker (required for containerized execution and SageMaker BYOC workflows)
+- AWS CLI configured (for interaction with Amazon S3, ECR, and SageMaker)
+- Access to **Amazon SageMaker Studio** (recommended for running processing and training jobs)
 
 ## How to Run the Pipeline
 
@@ -126,21 +137,29 @@ uv run python -m src.training
 uv run python -m src.inference --input_path data/inference/test.csv --model_path artifacts/xgboost_model.joblib
 ```
 
-### 4. Deploy and test the model on Amazon SageMaker
+### 4. Run preprocessing as a SageMaker Processing Job (BYOC)
+
+The preprocessing step can be executed in a scalable and reproducible way using a custom container (BYOC) in SageMaker. The full workflow — including Docker build, ECR push, data upload to S3, Processing Job execution, and output validation — is implemented in:
+```bash
+processing/sm_processing_byoc.ipynb
+```
+
+### 5. Deploy and test the model on Amazon SageMaker
 
 The full deployment process — including **container build, ECR upload, SageMaker training job execution, endpoint deployment, and endpoint invocation** — is documented in the following notebook:
 ```bash
 sagemaker/dem-fore-model.ipynb
 ```
-
-## Running the Pipeline with Docker
 ---
 
+## Running the Pipeline with Docker
+
 Each stage of the pipeline is containerized:
-- preprocessing
+- preprocessing (local module and SageMaker Processing BYOC)
 - training
 - inference
-This ensures **reproducibility and environment isolation**.
+
+This ensures **reproducibility and environment isolation**, allowing the same code to run consistently across local and cloud environments. The preprocessing stage can be executed either locally via the modular pipeline or at scale using a custom Docker container within **Amazon SageMaker Processing**.
 
 ### 1. Build Docker Images
 
@@ -197,15 +216,22 @@ docker run --rm \
 In addition to local Docker execution, the project also uses custom Docker containers for Amazon SageMaker.
 
 Separate container images are built for:
+- Data preprocessing (SageMaker Processing BYOC)
 - Model training
 - Real-time inference
 
 These images are pushed to Amazon Elastic Container Registry (ECR) and used by SageMaker to:
 
+- Run scalable data preprocessing jobs via **SageMaker Processing**
 - Run distributed training jobs
 - Deploy a real-time inference endpoint
 
-The complete deployment workflow is documented in:
+The preprocessing workflow using a custom container is documented in:
+```bash
+processing/sm_processing_byoc.ipynb
+```
+
+The complete training and deployment workflow is documented in:
 ```bash
 sagemaker/dem-fore-model.ipynb
 ```
@@ -247,6 +273,24 @@ Exploratory and development notebooks.
   Model training and evaluation.
 
 These notebooks document the analytical reasoning behind the final pipeline.
+
+---
+
+### `processing/`
+
+Data preprocessing pipeline using **SageMaker Processing (BYOC)**
+
+- **`sm_processing_byoc.ipynb`**  
+  Demonstrates the full workflow of building a custom Docker container, pushing the image to Amazon ECR, uploading raw data to S3, executing a SageMaker Processing Job, and validating the transformed output.
+
+- **`code/preprocess.py`**  
+  Contains the preprocessing logic, including data loading, cleaning, merging datasets, and feature engineering to generate a training-ready dataset.
+
+- **`container/Dockerfile`**  
+  Defines the custom Docker image used in the Processing Job, including all required dependencies (`pandas`, `numpy`, `scikit-learn`).
+
+- **`README.md`**  
+  Documents the preprocessing workflow, architecture, and usage of the BYOC Processing Job.
 
 ---
 
@@ -377,6 +421,8 @@ This project relies on the following Python libraries:
 - matplotlib – data visualization
 - pyarrow – efficient data storage and I/O
 - pyyaml – configuration handling
+- boto3 – interaction with AWS services (S3, ECR, SageMaker)
+- sagemaker – orchestration of training and processing jobs on Amazon SageMaker
 - ruff – code linting
 - pylint – static code analysis
 - nbformat – notebook structure handling
@@ -407,3 +453,8 @@ This project relies on the following Python libraries:
 ### Endpoint
 ![Identifier](docs/images/Endpoint_1.png)
 ![Predictions](docs/images/Endpoint_2.png)
+
+### Amazon ECR/Images - Preprocessing
+![Repositories](docs/images/ECR_preprocessing.png)
+![Success preprocessing](docs/images/Success_preprocessing.png)
+![S3 preprocessing](docs/images/S3_preprocessing.png)
