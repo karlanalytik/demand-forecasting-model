@@ -110,6 +110,6 @@ This pipeline is:
 
 ##  Screenshots
 
-![Repositories](docs/images/ECR_preprocessing.png)
-![Success preprocessing](docs/images/Success_preprocessing.png)
-![S3 preprocessing](docs/images/S3_preprocessing.png)
+![Repositories](../docs/images/ECR_preprocessing.png)
+![Success preprocessing](../docs/images/Success_preprocessing.png)
+![S3 preprocessing](../docs/images/S3_preprocessing.png)
