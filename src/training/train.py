@@ -1,8 +1,8 @@
-"""Model training module.
+"""Model training module for SageMaker pipeline.
 
-This module loads prepared data, performs a time-based train/validation
-split, trains a demand forecasting model, evaluates its performance,
-and saves the trained model artifacts.
+This module loads prepared train and validation datasets from SageMaker
+training channels, trains a demand forecasting model, evaluates its
+performance, and saves the trained model artifact.
 """
 
 import argparse
@@ -16,16 +16,10 @@ import pandas as pd
 import xgboost as xgb
 from sklearn.metrics import mean_squared_error
 
-# =========================
-# Logging configuration
-# =========================
+
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
-
-# =========================
-# Argument parsing
-# =========================
 
 def parse_args() -> argparse.Namespace:
     """Parse command-line arguments with SageMaker-compatible defaults."""
@@ -38,22 +32,28 @@ def parse_args() -> argparse.Namespace:
         help="Directory containing training data.",
     )
     parser.add_argument(
+        "--validation-data-dir",
+        type=str,
+        default=os.environ.get("SM_CHANNEL_VALIDATION", "/opt/ml/input/data/validation"),
+        help="Directory containing validation data.",
+    )
+    parser.add_argument(
         "--train-file",
         type=str,
-        default="sales_prep.csv",
+        default="train.csv",
         help="Training CSV filename.",
+    )
+    parser.add_argument(
+        "--validation-file",
+        type=str,
+        default="validation.csv",
+        help="Validation CSV filename.",
     )
     parser.add_argument(
         "--target-col",
         type=str,
         default="item_cnt_month",
         help="Target column name.",
-    )
-    parser.add_argument(
-        "--time-col",
-        type=str,
-        default="date_block_num",
-        help="Time column used for time-based split.",
     )
     parser.add_argument(
         "--model-dir",
@@ -75,63 +75,55 @@ def parse_args() -> argparse.Namespace:
 
     return args
 
-# =========================
-# Functions
-# =========================
+
 def load_data(path: str) -> pd.DataFrame:
     """Load prepared dataset from disk."""
     logger.info("Loading data from %s", path)
     return pd.read_csv(path)
 
 
-def resolve_train_path(train_data_dir: str, train_file: str) -> str:
-    """Resolve the CSV path from SageMaker channel or local fallback."""
-    train_dir = Path(train_data_dir)
+def resolve_csv_path(data_dir: str, expected_file: str) -> str:
+    """Resolve a CSV path from a SageMaker channel directory or local fallback."""
+    data_path = Path(data_dir)
 
-    if train_dir.is_file():
-        return str(train_dir)
+    if data_path.is_file():
+        return str(data_path)
 
-    if train_dir.exists():
-        csv_files = sorted(train_dir.glob("*.csv"))
+    if data_path.exists():
+        expected_candidate = data_path / expected_file
+        if expected_candidate.exists():
+            logger.info("Using expected CSV file: %s", expected_candidate)
+            return str(expected_candidate)
+
+        csv_files = sorted(data_path.glob("*.csv"))
         if csv_files:
-            logger.info("Using CSV found in train-data-dir: %s", csv_files[0])
+            logger.info("Using CSV found in %s: %s", data_dir, csv_files[0])
             return str(csv_files[0])
 
-    local_candidate = Path("data/prep") / train_file
+    local_candidate = Path("data/prep") / expected_file
     if local_candidate.exists():
         logger.info("Using local fallback CSV: %s", local_candidate)
         return str(local_candidate)
 
     raise FileNotFoundError(
-        f"No CSV found in {train_data_dir} and fallback {local_candidate} does not exist."
+        f"No CSV found in {data_dir} and fallback {local_candidate} does not exist."
     )
 
 
-def train_val_split(
+def split_features_target(
     data: pd.DataFrame,
     target: str,
-    time_col: str
-) -> tuple[pd.DataFrame, pd.DataFrame, pd.Series, pd.Series]:
-    """Split data into train and validation sets using time-based logic."""
-    split_date = data[time_col].quantile(0.8)
-    logger.info("Using split date: %s", split_date)
+) -> tuple[pd.DataFrame, pd.Series]:
+    """Split dataframe into features and target."""
+    if target not in data.columns:
+        raise ValueError(
+            f"Target column '{target}' not found. "
+            f"Available columns: {list(data.columns)}"
+        )
 
-    train = data[data[time_col] <= split_date]
-    val = data[data[time_col] > split_date]
-
-    X_train = train.drop(columns=[target])  # noqa: N806
-    y_train = train[target]  # noqa: N806
-
-    X_val = val.drop(columns=[target])  # noqa: N806
-    y_val = val[target]  # noqa: N806
-
-    logger.info(
-        "Train size: %d rows | Validation size: %d rows",
-        len(train),
-        len(val),
-    )
-
-    return X_train, X_val, y_train, y_val
+    X = data.drop(columns=[target])  # noqa: N806
+    y = data[target]  # noqa: N806
+    return X, y
 
 
 def train_model(
@@ -157,7 +149,7 @@ def train_model(
         X_train,
         y_train,
         eval_set=[(X_val, y_val)],
-        verbose=50
+        verbose=50,
     )
 
     return model
@@ -173,7 +165,6 @@ def evaluate(
     rmse = np.sqrt(mean_squared_error(y_val, preds))
 
     logger.info("Validation RMSE: %.4f", rmse)
-
     return preds, rmse
 
 
@@ -181,7 +172,6 @@ def save_model(model: xgb.XGBRegressor, path: str) -> None:
     """Save trained model to disk."""
     os.makedirs(os.path.dirname(path), exist_ok=True)
     joblib.dump(model, path)
-
     logger.info("Model saved at %s", path)
 
 
@@ -204,25 +194,28 @@ def main() -> None:
     for key, value in vars(args).items():
         logger.info("  %s=%s", key, value)
 
-    train_path = resolve_train_path(args.train_data_dir, args.train_file)
-    data = load_data(train_path)
+    train_path = resolve_csv_path(args.train_data_dir, args.train_file)
+    validation_path = resolve_csv_path(
+        args.validation_data_dir,
+        args.validation_file,
+    )
 
-    if args.target_col not in data.columns:
-        raise ValueError(
-            f"Target column '{args.target_col}' not found. "
-            f"Available columns: {list(data.columns)}"
-        )
+    train_data = load_data(train_path)
+    validation_data = load_data(validation_path)
 
-    if args.time_col not in data.columns:
-        raise ValueError(
-            f"Time column '{args.time_col}' not found. "
-            f"Available columns: {list(data.columns)}"
-        )
-
-    X_train, X_val, y_train, y_val = train_val_split(
-        data=data,
+    X_train, y_train = split_features_target(
+        data=train_data,
         target=args.target_col,
-        time_col=args.time_col,
+    )
+    X_val, y_val = split_features_target(
+        data=validation_data,
+        target=args.target_col,
+    )
+
+    logger.info(
+        "Train size: %d rows | Validation size: %d rows",
+        len(train_data),
+        len(validation_data),
     )
 
     model = train_model(
