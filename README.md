@@ -2,19 +2,26 @@
 
 This repository contains an **end-to-end Machine Learning workflow for demand forecasting in a retail context**, refactored from exploratory notebooks into a **production-ready repository structure**.
 
-The objective of this task is to transform a notebook-based analysis into a **reproducible, modular, and automatable pipeline**, suitable for execution on servers without human intervention.
+The objective of this project is to transform a notebook-based analysis into a **reproducible, modular, and automatable ML system**, capable of running both locally and in the cloud without manual intervention.
 
 The project includes:
-- Modular **ML pipeline**
-- Batch **preprocessing, training, and inference**
-- Dockerized execution for reproducibility
-- Structured Git workflow
+- A modular **ML pipeline** covering preprocessing, training, evaluation, and inference
+- Batch **data preprocessing, model training, and inference workflows**
+- Dockerized execution for full reproducibility (**BYOC – Bring Your Own Container**)
+- Structured Git workflow for collaborative development
 - Automated testing and linting
-- Custom containers using **Docker** for both **training** and **preprocessing**
-- Integration with **Amazon SageMaker** for scalable **processing and model training**
-- Deployment of a **real-time inference endpoint**
-- A custom **SageMaker Processing Job (BYOC)** for data transformation with `pandas` and `scikit-learn`
-- End-to-end workflow from **local development to cloud deployment**
+- Custom containers for **training, preprocessing, evaluation, and inference**
+- Integration with **Amazon SageMaker** for scalable processing and model training
+- A custom **SageMaker Processing Job (BYOC)** for data transformation using `pandas` and `scikit-learn`
+- An end-to-end **SageMaker Pipeline** orchestrating the full ML lifecycle:
+  - Preprocessing
+  - Training
+  - Evaluation (RMSE-based)
+  - Conditional model validation
+  - Model registration in SageMaker Model Registry
+  - Batch inference (Transform step)
+- Deployment capabilities for both **batch inference and real-time endpoints**
+- A complete workflow from **local development to cloud-based production execution**
 
 ## Project Objective and Description
 
@@ -25,16 +32,38 @@ The repository follows best practices for Machine Learning projects, separating:
 - Prepared data
 - Preprocessing logic
 - Training scripts
+- Evaluation logic
 - Inference scripts
 - Artifacts (models, reports, outputs)
 
-This structure allows the workflow to be executed end-to-end in batch mode.
+This structure enables a fully reproducible **end-to-end batch workflow**, from raw data ingestion to model predictions.
 
-In addition, the project includes a **cloud deployment workflow using Amazon SageMaker**, enabling scalable data processing, model training, and real-time inference through custom Docker containers. Data preprocessing is implemented as a **SageMaker Processing Job (BYOC)**, ensuring that raw data can be transformed into training-ready features in a reproducible and scalable way. The model can then be trained using SageMaker training jobs and deployed to a **real-time endpoint** for on-demand predictions.
+In addition, the project includes a **cloud-based ML workflow using Amazon SageMaker**, enabling scalable data processing, model training, evaluation, and inference through custom Docker containers (BYOC). Data preprocessing is implemented as a **SageMaker Processing Job**, ensuring that raw data can be transformed into training-ready features in a reproducible and scalable manner.
 
-The repository therefore supports both:
-- **Local batch execution** using the modular pipeline
-- **Cloud-based preprocessing, training, and deployment** using SageMaker
+Building on this, the project implements a complete **SageMaker Pipeline (BYOC)** that orchestrates the full ML lifecycle:
+
+- Automated preprocessing and feature engineering
+- Model training using custom containers
+- Model evaluation using RMSE as the primary metric
+- Conditional validation based on a configurable performance threshold
+- Model registration in the **SageMaker Model Registry**
+- Batch inference using SageMaker **Batch Transform**
+
+Additionally, the model can be deployed to a **real-time endpoint** for on-demand predictions, providing both batch and online inference capabilities within the same architecture.
+
+This design ensures that the workflow is not only modular and reproducible, but also **production-ready and scalable in a cloud environment**.
+
+The repository therefore supports:
+
+- **Local batch execution** using the modular pipeline for preprocessing, training, evaluation, and inference
+- **Cloud-based execution on Amazon SageMaker**, including:
+  - Scalable preprocessing via Processing Jobs (BYOC)
+  - Model training with custom containers
+  - Model evaluation with automated metric tracking (RMSE)
+  - Orchestration through a full **SageMaker Pipeline**
+  - Conditional model validation and registration in the Model Registry
+  - Batch inference using **SageMaker Batch Transform**
+  - Optional deployment to **real-time endpoints** for online predictions
 
 ## Repository Structure
 
@@ -74,6 +103,10 @@ The repository therefore supports both:
 │   │   ├── preprocess.py
 │   ├── container
 │   │   ├── Dockerfile
+├── pipeline
+│   ├── README.md
+│   ├── Pipeline_notebook_byoc.ipynb
+│   ├── sagemaker_pipeline_byoc.ipynb
 ├── sagemaker
 │   ├── README.md
 │   ├── dem-fore-model.ipynb
@@ -116,7 +149,13 @@ This project uses **`uv`** for Python environment and dependency management.
 - `uv` installed
 - Docker (required for containerized execution and SageMaker BYOC workflows)
 - AWS CLI configured (for interaction with Amazon S3, ECR, and SageMaker)
-- Access to **Amazon SageMaker Studio** (recommended for running processing and training jobs)
+- Access to **Amazon SageMaker Studio** (recommended for running processing, training, and pipeline jobs)
+- An AWS account with permissions for:
+  - Amazon S3 (data storage)
+  - Amazon ECR (container registry)
+  - Amazon SageMaker (processing, training, pipelines, and model registry)
+
+These requirements enable both local execution and full cloud deployment, including the orchestration of the end-to-end ML workflow through **SageMaker Pipelines (BYOC)**.
 
 ## How to Run the Pipeline
 
@@ -150,6 +189,30 @@ The full deployment process — including **container build, ECR upload, SageMak
 ```bash
 sagemaker/dem-fore-model.ipynb
 ```
+
+### 6. Run the complete ML pipeline
+
+A fully automated pipeline is implemented using SageMaker Pipelines, orchestrating all steps of the ML lifecycle with custom containers (BYOC):
+
+- Preprocessing
+- Training
+- Evaluation (RMSE-based)
+- Conditional model validation
+- Model registration in Model Registry
+- Batch inference (Transform step)
+
+The pipeline can be executed from:
+```bash
+pipeline/Pipeline_notebook_byoc.ipynb
+```
+This notebook:
+
+- Builds and connects all pipeline steps
+- Executes the pipeline
+- Tracks execution status
+- Produces all artifacts in S3
+- Registers the model in SageMaker Model Registry
+
 ---
 
 ## Running the Pipeline with Docker
@@ -211,30 +274,38 @@ docker run --rm \
   --month 12
 ```
 
-### 3. Docker Containers for SageMaker Deployment
+### 3. Docker Containers for SageMaker (BYOC)
 
-In addition to local Docker execution, the project also uses custom Docker containers for Amazon SageMaker.
+In addition to local Docker execution, the project uses custom Docker containers for Amazon SageMaker across all stages of the ML lifecycle:
 
-Separate container images are built for:
-- Data preprocessing (SageMaker Processing BYOC)
-- Model training
-- Real-time inference
+- Data preprocessing **(SageMaker Processing BYOC)**
+- Model training (custom training container)
+- Model evaluation (custom processing container)
+- Batch inference and real-time serving (custom inference container)
 
 These images are pushed to Amazon Elastic Container Registry (ECR) and used by SageMaker to:
 
 - Run scalable data preprocessing jobs via **SageMaker Processing**
-- Run distributed training jobs
-- Deploy a real-time inference endpoint
+- Execute training jobs using custom containers
+- Evaluate models and generate metrics (RMSE)
+- Run batch inference via SageMaker Batch Transform
+- Deploy models to real-time endpoints
 
-The preprocessing workflow using a custom container is documented in:
+The complete pipeline workflow is implemented in:
+```bash
+pipeline/Pipeline_notebook_byoc.ipynb
+```
+Additional workflows:
 ```bash
 processing/sm_processing_byoc.ipynb
 ```
 
-The complete training and deployment workflow is documented in:
 ```bash
 sagemaker/dem-fore-model.ipynb
 ```
+
+This design ensures that the same containerized logic is reused consistently across local execution and cloud-based orchestration.
+---
 
 ## Scripts (inputs/outputs)
 
@@ -291,6 +362,21 @@ Data preprocessing pipeline using **SageMaker Processing (BYOC)**
 
 - **`README.md`**  
   Documents the preprocessing workflow, architecture, and usage of the BYOC Processing Job.
+
+---
+
+### `pipeline/`
+
+End-to-end ML orchestration using **SageMaker Pipelines (BYOC)**
+
+- **`Pipeline_notebook_byoc.ipynb`**  
+  Main notebook that defines and executes the full SageMaker Pipeline, including preprocessing, training, evaluation (RMSE-based), conditional validation, model registration, and batch inference.
+
+- **`sagemaker_pipeline_byoc.ipynb`**  
+  Supporting notebook used for setting up container images, managing ECR integration, and preparing the environment required to run the pipeline in SageMaker.
+
+- **`README.md`**  
+  Provides an overview of the pipeline architecture, workflow, and instructions for executing the end-to-end pipeline using custom containers.
 
 ---
 
@@ -458,3 +544,13 @@ This project relies on the following Python libraries:
 ![Repositories](docs/images/ECR_preprocessing.png)
 ![Success preprocessing](docs/images/Success_preprocessing.png)
 ![S3 preprocessing](docs/images/S3_preprocessing.png)
+
+### Sagemaker Pipeline - BYOC (End-to-End)
+![Pipeline Containers](docs/images/pipeline_containers.png)
+![Pipeline Preprocessing Image](docs/images/pipeline_preprocessing_image.png)
+![Pipeline Training Image](docs/images/pipeline_training_image.png)
+![Pipeline Inference Image](docs/images/pipeline_inference_image.png)
+![Pipeline Success](docs/images/pipeline_succed1.png)
+![Pipeline Success - Details](docs/images/pipeline_succed2.png)
+![Pipeline Registered Model](docs/images/pipeline_registered_model.png)
+![Pipeline S3 outputs]( docs/images/pipeline_s3_outputs.png)

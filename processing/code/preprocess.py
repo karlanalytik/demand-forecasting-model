@@ -1,11 +1,4 @@
-"""SageMaker Processing entrypoint for data preprocessing.
-
-Este script adapta la lógica de src/preprocessing/prep.py al patrón
-de SageMaker Processing:
-
-S3 -> /opt/ml/processing/input -> preprocess.py
-   -> /opt/ml/processing/output -> S3
-"""
+"""SageMaker Processing entrypoint for data preprocessing."""
 
 import argparse
 import logging
@@ -14,9 +7,6 @@ import os
 import pandas as pd
 
 
-# =========================
-# Logging configuration
-# =========================
 logging.basicConfig(
     level=logging.INFO,
     format="%(asctime)s - %(levelname)s - %(name)s - %(message)s"
@@ -24,11 +14,7 @@ logging.basicConfig(
 logger = logging.getLogger(__name__)
 
 
-# =========================
-# Functions
-# =========================
 def load_raw_data(path: str) -> pd.DataFrame:
-    """Load and merge raw data from multiple CSV files."""
     logger.info("Loading raw data from %s", path)
 
     required_files = [
@@ -62,7 +48,6 @@ def load_raw_data(path: str) -> pd.DataFrame:
 
 
 def clean_data(df: pd.DataFrame) -> pd.DataFrame:
-    """Perform basic data cleaning."""
     logger.info("Starting data cleaning")
 
     d = df.copy()
@@ -75,7 +60,10 @@ def clean_data(df: pd.DataFrame) -> pd.DataFrame:
 
     null_dates = d["date"].isna().sum()
     if null_dates > 0:
-        logger.warning("Se encontraron %d fechas inválidas; serán eliminadas", null_dates)
+        logger.warning(
+            "Se encontraron %d fechas inválidas; serán eliminadas",
+            null_dates
+        )
         d = d.dropna(subset=["date"])
 
     before = len(d)
@@ -85,10 +73,6 @@ def clean_data(df: pd.DataFrame) -> pd.DataFrame:
     if before != after:
         logger.info("Removed %d duplicate rows", before - after)
 
-    # Opcional: eliminar ventas negativas si decides activarlo después
-    # if "item_cnt_day" in d.columns:
-    #     d = d[d["item_cnt_day"] >= 0]
-
     d = d.reset_index(drop=True)
 
     logger.info("Data cleaning completed: %d rows", len(d))
@@ -96,7 +80,6 @@ def clean_data(df: pd.DataFrame) -> pd.DataFrame:
 
 
 def feature_engineering(df: pd.DataFrame) -> pd.DataFrame:
-    """Generate aggregated features for training."""
     logger.info("Starting feature engineering")
 
     d = df.copy()
@@ -131,13 +114,27 @@ def feature_engineering(df: pd.DataFrame) -> pd.DataFrame:
     return monthly
 
 
-def save_prepared_data(df: pd.DataFrame, path: str, filename: str = "sales_prep.csv") -> None:
-    """Save the prepared dataset to disk."""
-    os.makedirs(path, exist_ok=True)
-    output_path = os.path.join(path, filename)
+def split_data(df: pd.DataFrame):
+    """Split data by date_block_num for time-series workflow."""
+    max_block = df["date_block_num"].max()
 
+    train_df = df[df["date_block_num"] < max_block - 1].copy()
+    validation_df = df[df["date_block_num"] == max_block - 1].copy()
+    test_df = df[df["date_block_num"] == max_block].copy()
+
+    logger.info(
+        "Split completed | train: %d rows | validation: %d rows | test: %d rows",
+        len(train_df), len(validation_df), len(test_df)
+    )
+
+    return train_df, validation_df, test_df
+
+
+def save_split(df: pd.DataFrame, output_dir: str, filename: str) -> None:
+    os.makedirs(output_dir, exist_ok=True)
+    output_path = os.path.join(output_dir, filename)
     df.to_csv(output_path, index=False)
-    logger.info("Prepared data saved to %s", output_path)
+    logger.info("Saved file to %s", output_path)
 
 
 def main():
@@ -149,29 +146,26 @@ def main():
         default="/opt/ml/processing/input",
         help="Directorio local de entrada montado por SageMaker Processing"
     )
-    parser.add_argument(
-        "--output-dir",
-        type=str,
-        default="/opt/ml/processing/output",
-        help="Directorio local de salida montado por SageMaker Processing"
-    )
-    parser.add_argument(
-        "--output-filename",
-        type=str,
-        default="sales_prep.csv",
-        help="Nombre del archivo CSV de salida"
-    )
 
     args = parser.parse_args()
 
-    logger.info("Starting preprocessing job")
-    logger.info("Input dir: %s", args.input_dir)
-    logger.info("Output dir: %s", args.output_dir)
+    input_dir = args.input_dir
+    train_dir = "/opt/ml/processing/output/train"
+    validation_dir = "/opt/ml/processing/output/validation"
+    test_dir = "/opt/ml/processing/output/test"
 
-    raw_df = load_raw_data(args.input_dir)
+    logger.info("Starting preprocessing job")
+    logger.info("Input dir: %s", input_dir)
+
+    raw_df = load_raw_data(input_dir)
     clean_df = clean_data(raw_df)
     features_df = feature_engineering(clean_df)
-    save_prepared_data(features_df, args.output_dir, args.output_filename)
+
+    train_df, validation_df, test_df = split_data(features_df)
+
+    save_split(train_df, train_dir, "train.csv")
+    save_split(validation_df, validation_dir, "validation.csv")
+    save_split(test_df, test_dir, "test.csv")
 
     logger.info("Preprocessing job completed successfully")
 
